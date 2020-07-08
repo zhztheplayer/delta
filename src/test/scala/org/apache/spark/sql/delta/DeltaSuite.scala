@@ -19,13 +19,13 @@ package org.apache.spark.sql.delta
 import java.io.{File, FileNotFoundException}
 import java.util.concurrent.atomic.AtomicInteger
 
+import com.intel.oap.spark.sql.execution.datasources.v2.parquet.ServiceLoaderUtil
 import org.apache.spark.sql.delta.actions.CommitInfo
 import org.apache.spark.sql.delta.files.TahoeLogFileIndex
 import org.apache.spark.sql.delta.sources.DeltaSQLConf
 import org.apache.spark.sql.delta.test.DeltaSQLCommandTest
 import org.apache.hadoop.fs.{FileSystem, Path}
-
-import org.apache.spark.SparkException
+import org.apache.spark.{SparkConf, SparkException}
 import org.apache.spark.scheduler.{SparkListener, SparkListenerJobStart}
 import org.apache.spark.sql._
 import org.apache.spark.sql.catalyst.expressions.InSet
@@ -151,7 +151,14 @@ class DeltaSuite extends QueryTest
     assert(e.contains("No delta log found"))
   }
 
+  override protected def sparkConf: SparkConf = {
+    val conf = super.sparkConf
+    conf.set("spark.memory.offHeap.size", String.valueOf(1 * 1024 * 1024))
+    conf
+  }
+
   test("append then read") {
+    ServiceLoaderUtil.ensureParquetFileFormatOverwritten()
     val tempDir = Utils.createTempDir()
     Seq(1).toDF().write.format("delta").save(tempDir.toString)
     Seq(2, 3).toDF().write.format("delta").mode("append").save(tempDir.toString)
@@ -161,7 +168,9 @@ class DeltaSuite extends QueryTest
 
     // append more
     Seq(4, 5, 6).toDF().write.format("delta").mode("append").save(tempDir.toString)
-    checkAnswer(data.toDF(), Row(1) :: Row(2) :: Row(3) :: Row(4) :: Row(5) :: Row(6) :: Nil)
+    val frame = data.toDF()
+    frame.explain()
+    checkAnswer(frame, Row(1) :: Row(2) :: Row(3) :: Row(4) :: Row(5) :: Row(6) :: Nil)
   }
 
   test("partitioned append - nulls") {

@@ -22,6 +22,8 @@ scalaVersion := "2.12.10"
 
 sparkVersion := "3.0.0"
 
+resolvers += Resolver.mavenLocal
+
 libraryDependencies ++= Seq(
   // Adding test classifier seems to break transitive resolution of the core dependencies
   "org.apache.spark" %% "spark-hive" % sparkVersion.value % "provided",
@@ -37,6 +39,8 @@ libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-core" % sparkVersion.value % "test" classifier "tests",
   "org.apache.spark" %% "spark-sql" % sparkVersion.value % "test" classifier "tests",
   "org.apache.spark" %% "spark-hive" % sparkVersion.value % "test" classifier "tests",
+
+  "com.intel.oap" % "spark-arrow-datasource-parquet" % "0.9.0",
 
   // Compiler plugins
   // -- Bump up the genjavadoc version explicitly to 0.16 to work with Scala 2.12
