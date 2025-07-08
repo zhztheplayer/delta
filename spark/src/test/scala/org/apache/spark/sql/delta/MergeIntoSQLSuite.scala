@@ -17,11 +17,11 @@
 package org.apache.spark.sql.delta
 
 // scalastyle:off import.ordering.noEmptyLine
+import org.apache.spark.SparkConf
 import org.apache.spark.sql.delta.sources.DeltaSQLConf
 import org.apache.spark.sql.delta.test.{DeltaColumnMappingSelectedTestMixin, DeltaSQLCommandTest}
 import org.scalatest.matchers.must.Matchers.be
 import org.scalatest.matchers.should.Matchers.noException
-
 import org.apache.spark.sql.{AnalysisException, QueryTest, Row}
 import org.apache.spark.sql.catalyst.analysis.{Analyzer, ResolveSessionCatalog}
 import org.apache.spark.sql.catalyst.parser.ParseException
@@ -39,6 +39,17 @@ class MergeIntoSQLSuite extends MergeIntoSuiteBase
   with DeltaTestUtilsForTempViews {
 
   import testImplicits._
+
+  override protected def sparkConf: SparkConf = {
+    super.sparkConf
+      .set("spark.plugins", "org.apache.gluten.GlutenPlugin")
+      .set("spark.gluten.sql.debug", "true")
+      .set("spark.gluten.enabled", "false") // Disable Gluten to test native write only.
+      .set("spark.memory.offHeap.enabled", "true")
+      .set("spark.memory.offHeap.size", "5G")
+      .set("spark.databricks.delta.stats.collect", "false") // Error otherwise.
+  }
+
 
   override def excluded: Seq[String] = super.excluded ++ Seq(
     // Schema evolution SQL syntax is not yet supported

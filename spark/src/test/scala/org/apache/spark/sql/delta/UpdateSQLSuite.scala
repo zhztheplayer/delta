@@ -17,10 +17,10 @@
 package org.apache.spark.sql.delta
 
 // scalastyle:off import.ordering.noEmptyLine
+import org.apache.spark.SparkConf
 import org.apache.spark.sql.delta.actions.{AddFile, FileAction, RemoveFile}
 import org.apache.spark.sql.delta.sources.DeltaSQLConf
 import org.apache.spark.sql.delta.test.{DeltaExcludedTestMixin, DeltaSQLCommandTest}
-
 import org.apache.spark.sql.{AnalysisException, QueryTest, Row}
 import org.apache.spark.sql.catalyst.TableIdentifier
 import org.apache.spark.sql.errors.QueryExecutionErrors.toSQLType
@@ -32,6 +32,16 @@ class UpdateSQLSuite extends UpdateSuiteBase
   with DeltaSQLCommandTest {
 
   import testImplicits._
+
+  override protected def sparkConf: SparkConf = {
+    super.sparkConf
+      .set("spark.plugins", "org.apache.gluten.GlutenPlugin")
+      .set("spark.gluten.sql.debug", "true")
+      .set("spark.gluten.enabled", "false") // Disable Gluten to test native write only.
+      .set("spark.memory.offHeap.enabled", "true")
+      .set("spark.memory.offHeap.size", "5G")
+      .set("spark.databricks.delta.stats.collect", "false") // Error otherwise.
+  }
 
   test("explain") {
     append(Seq((2, 2)).toDF("key", "value"))

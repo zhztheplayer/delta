@@ -16,15 +16,25 @@
 
 package org.apache.spark.sql.delta
 
+import org.apache.spark.SparkConf
 import org.apache.spark.sql.delta.sources.DeltaSQLConf
 import org.apache.spark.sql.delta.test.{DeltaExcludedTestMixin, DeltaSQLCommandTest}
-
 import org.apache.spark.sql.Row
 
 class DeleteSQLSuite extends DeleteSuiteBase
   with DeltaSQLCommandTest {
 
   import testImplicits._
+
+  override protected def sparkConf: SparkConf = {
+    super.sparkConf
+      .set("spark.plugins", "org.apache.gluten.GlutenPlugin")
+      .set("spark.gluten.sql.debug", "true")
+      .set("spark.gluten.enabled", "false") // Disable Gluten to test native write only.
+      .set("spark.memory.offHeap.enabled", "true")
+      .set("spark.memory.offHeap.size", "5G")
+      .set("spark.databricks.delta.stats.collect", "false") // Error otherwise.
+  }
 
   override protected def executeDelete(target: String, where: String = null): Unit = {
     val whereClause = Option(where).map(c => s"WHERE $c").getOrElse("")
@@ -48,7 +58,9 @@ class DeleteSQLSuite extends DeleteSuiteBase
         Seq((1, 1), (0, 3), (1, 5)).toDF("key", "value").write.format("delta").saveAsTable("tab")
         spark.table("tab").as("name").createTempView("v")
         sql("DELETE FROM v WHERE key = 1")
-        checkAnswer(spark.table("tab"), Row(0, 3))
+        val df = spark.table("tab")
+        df.collect()
+        checkAnswer(df, Row(0, 3))
       }
     }
   }
