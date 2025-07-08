@@ -61,7 +61,7 @@ case class DeltaParquetFileFormat(
     optimizationsEnabled: Boolean = true,
     tablePath: Option[String] = None,
     isCDCRead: Boolean = false)
-  extends ParquetFileFormat
+  extends GlutenParquetFileFormat
   with LoggingShims {
   // Validate either we have all arguments for DV enabled read or none of them.
   if (hasTablePath) {
@@ -86,6 +86,10 @@ case class DeltaParquetFileFormat(
     require(SparkSession.getActiveSession.exists(_.sessionState.conf.getConf(requiredWriteConf)),
       s"${requiredWriteConf.key} must be enabled to support Delta id column mapping mode")
   }
+
+  override def shortName(): String = "parquet"
+
+  override def toString: String = "Parquet"
 
   /**
    * prepareSchemaForRead must only be used for parquet read.
