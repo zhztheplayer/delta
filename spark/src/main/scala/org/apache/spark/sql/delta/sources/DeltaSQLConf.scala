@@ -2274,6 +2274,16 @@ trait DeltaSQLConfBase {
       .createWithDefault(false)
 
   ///////////
+  // Velox IO
+  ///////////
+  val PARQUET_VELOX_VECTORIZED_READER_ENABLED =
+    buildConf("veloxVectorizedReader.enabled")
+      .internal()
+      .doc("Enables Velox vectorized parquet decoding.")
+      .booleanConf
+      .createWithDefault(true)
+
+  ///////////
   // TESTING
   ///////////
   val DELTA_POST_COMMIT_HOOK_THROW_ON_ERROR =
