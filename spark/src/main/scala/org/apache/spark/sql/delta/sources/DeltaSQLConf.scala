@@ -2276,8 +2276,15 @@ trait DeltaSQLConfBase {
   ///////////
   // Velox IO
   ///////////
-  val PARQUET_VELOX_VECTORIZED_READER_ENABLED =
-    buildConf("veloxVectorizedReader.enabled")
+  val VELOX_ROW_INDEX_FILTER_ENABLED =
+    buildConf("veloxRowIndexFilter.enabled")
+      .internal()
+      .doc("Enables Velox row-index filter.")
+      .booleanConf
+      .createWithDefault(false)
+
+  val VELOX_PARQUET_VECTORIZED_READER_ENABLED =
+    buildConf("veloxParquetVectorizedReader.enabled")
       .internal()
       .doc("Enables Velox vectorized parquet decoding.")
       .booleanConf

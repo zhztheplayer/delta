@@ -65,6 +65,7 @@ import org.apache.spark.sql.execution.datasources.parquet.ParquetReadSupport$;
 import org.apache.spark.sql.execution.datasources.parquet.ParquetToSparkSchemaConverter;
 import org.apache.spark.sql.execution.vectorized.ColumnVectorUtils;
 import org.apache.spark.sql.execution.vectorized.ConstantColumnVector;
+import org.apache.spark.sql.execution.velox.VeloxInitializer;
 import org.apache.spark.sql.sources.And;
 import org.apache.spark.sql.sources.Filter;
 import org.apache.spark.sql.types.*;

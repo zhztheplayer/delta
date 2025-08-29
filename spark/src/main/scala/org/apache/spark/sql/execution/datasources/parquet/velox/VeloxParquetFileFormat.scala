@@ -231,7 +231,7 @@ object VeloxParquetFileFormat {
 
   def isVeloxBatchReadSupportedForSchema(sqlConf: SQLConf, schema: StructType): Boolean =
     sqlConf.parquetVectorizedReaderEnabled &&
-      sqlConf.getConf(DeltaSQLConf.PARQUET_VELOX_VECTORIZED_READER_ENABLED) &&
+      sqlConf.getConf(DeltaSQLConf.VELOX_PARQUET_VECTORIZED_READER_ENABLED) &&
       !hasFieldIds(schema) && schema.forall(f => isVeloxBatchReadSupported(sqlConf, f))
 
   def isVeloxBatchReadSupported(sqlConf: SQLConf, f: StructField): Boolean = {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.apache.spark.sql.execution.datasources.parquet.velox;
+package org.apache.spark.sql.execution.velox;
 
 import io.github.zhztheplayer.velox4j.Velox4j;
 
