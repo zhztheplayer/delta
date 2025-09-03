@@ -417,6 +417,20 @@ lazy val spark = (project in file("spark"))
     sparkMimaSettings,
     releaseSettings,
     crossSparkSettings(),
+    resolvers += Resolver.mavenLocal,
+    dependencyOverrides += "org.apache.arrow" % "arrow-vector" % "18.1.0",
+    dependencyOverrides += "org.apache.arrow" % "arrow-memory-unsafe" % "18.1.0",
+    dependencyOverrides += "org.apache.arrow" % "arrow-memory-netty" % "18.1.0",
+    dependencyOverrides += "org.apache.arrow" % "arrow-memory-core" % "18.1.0",
+    dependencyOverrides += "org.apache.arrow" % "arrow-format" % "18.1.0",
+    dependencyOverrides += "org.apache.arrow" % "arrow-c-data" % "18.1.0",
+    dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.15.2",
+    dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.15.2",
+    dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-annotations" % "2.15.2",
+    excludeDependencies ++= Seq(
+      ExclusionRule("org.apache.arrow", "arrow-memory"),
+      ExclusionRule("org.apache.arrow", "arrow-memory-unsafe")
+    ),
     libraryDependencies ++= Seq(
       // Adding test classifier seems to break transitive resolution of the core dependencies
       "org.apache.spark" %% "spark-hive" % sparkVersion.value % "provided",
@@ -425,6 +439,9 @@ lazy val spark = (project in file("spark"))
       "org.apache.spark" %% "spark-catalyst" % sparkVersion.value % "provided",
       // For DynamoDBCommitStore
       "com.amazonaws" % "aws-java-sdk" % "1.12.262" % "provided",
+
+      // Velox4J
+      "io.github.zhztheplayer" % "velox4j" % "0.1.0-SNAPSHOT" % "compile",
 
       // Test deps
       "org.scalatest" %% "scalatest" % scalaTestVersion % "test",
