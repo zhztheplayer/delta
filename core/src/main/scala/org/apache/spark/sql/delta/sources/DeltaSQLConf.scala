@@ -1200,6 +1200,16 @@ trait DeltaSQLConfBase {
           |Only change this for testing!""".stripMargin)
       .booleanConf
       .createWithDefault(true)
+
+  ///////////
+  // Velox
+  ///////////
+  val VELOX_ROW_INDEX_FILTER_ENABLED =
+    buildConf("veloxRowIndexFilter.enabled")
+      .internal()
+      .doc("Enables Velox row-index filter.")
+      .booleanConf
+      .createWithDefault(false)
 }
 
 object DeltaSQLConf extends DeltaSQLConfBase

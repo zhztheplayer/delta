@@ -48,7 +48,7 @@ abstract sealed class RowIndexMarkingFilters(bitmap: RoaringBitmapArray) extends
   }
 }
 
-sealed trait RowIndexMarkingFiltersBuilder {
+trait RowIndexMarkingFiltersBuilder {
   def getFilterForEmptyDeletionVector(): RowIndexFilter
   def getFilterForNonEmptyDeletionVector(bitmap: RoaringBitmapArray): RowIndexFilter
 

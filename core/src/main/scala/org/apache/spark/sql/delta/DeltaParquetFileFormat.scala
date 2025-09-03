@@ -17,27 +17,26 @@
 package org.apache.spark.sql.delta
 
 import java.net.URI
-
 import scala.collection.mutable.ArrayBuffer
 import scala.util.control.NonFatal
-
 import org.apache.spark.sql.delta.RowIndexFilterType
 import org.apache.spark.sql.delta.DeltaParquetFileFormat._
 import org.apache.spark.sql.delta.actions.{DeletionVectorDescriptor, Metadata, Protocol}
 import org.apache.spark.sql.delta.deletionvectors.{DropMarkedRowsFilter, KeepAllRowsFilter, KeepMarkedRowsFilter}
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
-
 import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.catalyst.InternalRow
+import org.apache.spark.sql.delta.deletionvectors.velox.VeloxRowIndexMarkingFilters
+import org.apache.spark.sql.delta.sources.DeltaSQLConf
 import org.apache.spark.sql.execution.datasources.PartitionedFile
 import org.apache.spark.sql.execution.datasources.parquet.ParquetFileFormat
 import org.apache.spark.sql.execution.vectorized.{OffHeapColumnVector, OnHeapColumnVector, WritableColumnVector}
 import org.apache.spark.sql.internal.SQLConf
 import org.apache.spark.sql.sources.Filter
 import org.apache.spark.sql.types.{ByteType, LongType, StructField, StructType}
-import org.apache.spark.sql.vectorized.{ColumnarBatch, ColumnVector}
+import org.apache.spark.sql.vectorized.{ColumnVector, ColumnarBatch}
 import org.apache.spark.util.SerializableConfiguration
 
 /**
@@ -147,6 +146,8 @@ case class DeltaParquetFileFormat(
     }
 
     val useOffHeapBuffers = sparkSession.sessionState.conf.offHeapColumnVectorEnabled
+    val useVeloxRowIndexFilter = sparkSession.sessionState.conf.getConf(
+      DeltaSQLConf.VELOX_ROW_INDEX_FILTER_ENABLED)
     (partitionedFile: PartitionedFile) => {
       val rowIteratorFromParquet = parquetDataReader(partitionedFile)
       val iterToReturn =
@@ -155,7 +156,8 @@ case class DeltaParquetFileFormat(
           rowIteratorFromParquet,
           isRowDeletedColumn,
           useOffHeapBuffers = useOffHeapBuffers,
-          rowIndexColumn = rowIndexColumn)
+          rowIndexColumn = rowIndexColumn,
+          useVeloxRowIndexFilter = useVeloxRowIndexFilter)
       iterToReturn.asInstanceOf[Iterator[InternalRow]]
     }
   }
@@ -188,7 +190,8 @@ case class DeltaParquetFileFormat(
       iterator: Iterator[Object],
       isRowDeletedColumn: Option[ColumnMetadata],
       rowIndexColumn: Option[ColumnMetadata],
-      useOffHeapBuffers: Boolean): Iterator[Object] = {
+      useOffHeapBuffers: Boolean,
+      useVeloxRowIndexFilter: Boolean): Iterator[Object] = {
     val pathUri = partitionedFile.pathUri
 
     val rowIndexFilter = isRowDeletedColumn.map { col =>
@@ -198,15 +201,31 @@ case class DeltaParquetFileFormat(
         .map { case DeletionVectorDescriptorWithFilterType(dvDescriptor, filterType) =>
           filterType match {
             case i if i == RowIndexFilterType.IF_CONTAINED =>
-              DropMarkedRowsFilter.createInstance(
-                dvDescriptor,
-                broadcastHadoopConf.get.value.value,
-                tablePath.map(new Path(_)))
+              if (useVeloxRowIndexFilter) {
+                VeloxRowIndexMarkingFilters.DropMarkedRowsFilter.createInstance(
+                  dvDescriptor,
+                  broadcastHadoopConf.get.value.value,
+                  tablePath.map(new Path(_))
+                )
+              } else {
+                DropMarkedRowsFilter.createInstance(
+                  dvDescriptor,
+                  broadcastHadoopConf.get.value.value,
+                  tablePath.map(new Path(_)))
+              }
             case i if i == RowIndexFilterType.IF_NOT_CONTAINED =>
-              KeepMarkedRowsFilter.createInstance(
-                dvDescriptor,
-                broadcastHadoopConf.get.value.value,
-                tablePath.map(new Path(_)))
+              if (useVeloxRowIndexFilter) {
+                VeloxRowIndexMarkingFilters.DropMarkedRowsFilter.createInstance(
+                  dvDescriptor,
+                  broadcastHadoopConf.get.value.value,
+                  tablePath.map(new Path(_))
+                )
+              } else {
+                KeepMarkedRowsFilter.createInstance(
+                  dvDescriptor,
+                  broadcastHadoopConf.get.value.value,
+                  tablePath.map(new Path(_)))
+              }
           }
         }
         .getOrElse(KeepAllRowsFilter)
