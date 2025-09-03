@@ -49,12 +49,29 @@ lazy val core = (project in file("core"))
     mimaSettings,
     unidocSettings,
     releaseSettings,
+    resolvers += Resolver.mavenLocal,
+    dependencyOverrides += "org.apache.arrow" % "arrow-vector" % "18.1.0",
+    dependencyOverrides += "org.apache.arrow" % "arrow-memory-unsafe" % "18.1.0",
+    dependencyOverrides += "org.apache.arrow" % "arrow-memory-netty" % "18.1.0",
+    dependencyOverrides += "org.apache.arrow" % "arrow-memory-core" % "18.1.0",
+    dependencyOverrides += "org.apache.arrow" % "arrow-format" % "18.1.0",
+    dependencyOverrides += "org.apache.arrow" % "arrow-c-data" % "18.1.0",
+    dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.14.2",
+    dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.14.2",
+    dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-annotations" % "2.14.2",
+    excludeDependencies ++= Seq(
+      ExclusionRule("org.apache.arrow", "arrow-memory"),
+      ExclusionRule("org.apache.arrow", "arrow-memory-unsafe")
+    ),
     libraryDependencies ++= Seq(
       // Adding test classifier seems to break transitive resolution of the core dependencies
       "org.apache.spark" %% "spark-hive" % sparkVersion % "provided",
       "org.apache.spark" %% "spark-sql" % sparkVersion % "provided",
       "org.apache.spark" %% "spark-core" % sparkVersion % "provided",
       "org.apache.spark" %% "spark-catalyst" % sparkVersion % "provided",
+
+      // Velox4J
+      "io.github.zhztheplayer" % "velox4j" % "0.1.0-SNAPSHOT" % "compile",
 
       // Test deps
       "org.scalatest" %% "scalatest" % "3.2.9" % "test",
