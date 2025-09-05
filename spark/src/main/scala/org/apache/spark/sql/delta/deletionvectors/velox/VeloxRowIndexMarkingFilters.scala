@@ -75,7 +75,7 @@ object VeloxRowIndexMarkingFilters {
           ConstantTypedExpr.create(
             veloxBitmapConstant
           ),
-          FieldAccessTypedExpr.create(new BigIntType(), "value"),
+          FieldAccessTypedExpr.create(new BigIntType(), "value")
         ).asJava, "roaring_bitmap_array_contains"),
         Config.empty(),
         ConnectorConfig.empty()
