@@ -57,6 +57,9 @@ class DeletionVectorsSuite extends QueryTest
   override def beforeAll(): Unit = {
     super.beforeAll()
     spark.conf.set(DeltaSQLConf.DELETION_VECTORS_USE_METADATA_ROW_INDEX.key, "false")
+    spark.conf.set(DeltaSQLConf.VELOX_PARQUET_VECTORIZED_READER_ENABLED.key, "true")
+    spark.conf.set(DeltaSQLConf.VELOX_ROW_INDEX_FILTER_ENABLED.key, "true")
+    spark.conf.set(SQLConf.COLUMN_VECTOR_OFFHEAP_ENABLED.key, "true")
   }
 
   protected def hadoopConf(): Configuration = {

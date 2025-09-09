@@ -105,6 +105,13 @@ class DeltaColumnMappingSuite extends QueryTest
 
   import testImplicits._
 
+  override def beforeAll(): Unit = {
+    super.beforeAll()
+    spark.conf.set(DeltaSQLConf.VELOX_PARQUET_VECTORIZED_READER_ENABLED.key, "true")
+    spark.conf.set(DeltaSQLConf.VELOX_ROW_INDEX_FILTER_ENABLED.key, "true")
+    spark.conf.set(SQLConf.COLUMN_VECTOR_OFFHEAP_ENABLED.key, "true")
+  }
+
   protected def withId(id: Long): Metadata =
     new MetadataBuilder()
       .putLong(DeltaColumnMapping.COLUMN_MAPPING_METADATA_ID_KEY, id)

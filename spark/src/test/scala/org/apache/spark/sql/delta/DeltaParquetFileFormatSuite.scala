@@ -26,9 +26,9 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.apache.parquet.format.converter.ParquetMetadataConverter
 import org.apache.parquet.hadoop.ParquetFileReader
-
 import org.apache.spark.sql.{DataFrame, Dataset, QueryTest}
 import org.apache.spark.sql.execution.datasources.{HadoopFsRelation, LogicalRelation}
+import org.apache.spark.sql.internal.SQLConf
 import org.apache.spark.sql.test.SharedSparkSession
 
 trait DeltaParquetFileFormatSuiteBase
@@ -103,6 +103,9 @@ class DeltaParquetFileFormatSuite extends DeltaParquetFileFormatSuiteBase {
   override def beforeAll(): Unit = {
     super.beforeAll()
     spark.conf.set(DeltaSQLConf.DELETION_VECTORS_USE_METADATA_ROW_INDEX.key, "false")
+    spark.conf.set(DeltaSQLConf.VELOX_PARQUET_VECTORIZED_READER_ENABLED.key, "true")
+    spark.conf.set(DeltaSQLConf.VELOX_ROW_INDEX_FILTER_ENABLED.key, "true")
+    spark.conf.set(SQLConf.COLUMN_VECTOR_OFFHEAP_ENABLED.key, "true")
   }
 
   // Read with deletion vectors has separate code paths based on vectorized Parquet
