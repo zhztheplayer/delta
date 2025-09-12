@@ -215,7 +215,7 @@ case class DeltaParquetFileFormat(
               }
             case i if i == RowIndexFilterType.IF_NOT_CONTAINED =>
               if (useVeloxRowIndexFilter) {
-                VeloxRowIndexMarkingFilters.DropMarkedRowsFilter.createInstance(
+                VeloxRowIndexMarkingFilters.KeepMarkedRowsFilter.createInstance(
                   dvDescriptor,
                   broadcastHadoopConf.get.value.value,
                   tablePath.map(new Path(_))
